@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<img src="kyku-logo.png" style="width:120px;margin-bottom:10px;">
 <title>All About KyKu | Food Ordering</title>
 <style>
 body{font-family:OpenSans;margin:0;background:#fff8f0}
 header{background:#ff7a00;color:#fff;padding:25px;text-align:center}
+header img{width:120px;margin-bottom:10px;}
 h1{margin:0}
 main{padding:30px}
 .products{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:25px;max-width:1100px;margin:auto}
@@ -28,6 +28,7 @@ footer{text-align:center;padding:20px;background:#fff1e0;margin-top:40px}
 <body>
 
 <header>
+  <img src="kyku-logo.png" alt="KyKu Logo">
   <h1>All About KyKu</h1>
   <p>Homemade Embotido & Kimchi</p>
 </header>
@@ -37,6 +38,7 @@ footer{text-align:center;padding:20px;background:#fff1e0;margin-top:40px}
 
 <div class="products">
 
+<!-- Embotido Card -->
 <div class="card">
 <img src="embotido.jpg" alt="KyKu Embotido">
 <h3>KyKu Embotido</h3>
@@ -45,21 +47,43 @@ footer{text-align:center;padding:20px;background:#fff1e0;margin-top:40px}
 <button onclick="addItem('KyKu Embotido',180)">Add to Cart</button>
 </div>
 
+<!-- Kimchi Card -->
 <div class="card">
 <img src="kimchi.jpg" alt="KyKu Kimchi">
 <h3>KyKu Kimchi</h3>
-<select id="kimchiSize">
+
+<label for="kimchiSize">Select Size:</label>
+<select id="kimchiSize" onchange="updateKimchiPrice()">
 <option value="79">250ml – ₱79</option>
 <option value="109">450ml – ₱109</option>
 <option value="139">750ml – ₱139</option>
 <option value="180">1000ml – ₱180</option>
 </select>
+
 <br><br>
+
+<label for="kimchiQty">Quantity:</label>
+<select id="kimchiQty" onchange="updateKimchiPrice()">
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+</select>
+
+<br><br>
+
+<p id="kimchiTotal">Total: ₱79</p>
+
 <button onclick="addKimchi()">Add to Cart</button>
 </div>
 
 </div>
 
+<!-- More Products Message -->
+<h3 style="text-align:center;color:#ff7a00;">More products available SOON!</h3>
+
+<!-- Cart Section -->
 <div class="cart">
 <h2>Your Cart</h2>
 <div id="cartItems"></div>
@@ -88,6 +112,7 @@ footer{text-align:center;padding:20px;background:#fff1e0;margin-top:40px}
 <script>
 let cart = [];
 
+// Embotido
 function addItem(name, price){
  let item = cart.find(i=>i.name===name);
  if(item){item.qty++;}
@@ -95,18 +120,29 @@ function addItem(name, price){
  render();
 }
 
-function addKimchi(){
- let sel=document.getElementById('kimchiSize');
- let price=parseInt(sel.value);
- let name='KyKu Kimchi '+sel.options[sel.selectedIndex].text;
- let item = cart.find(i=>i.name===name);
- if(item){item.qty++;}
- else{cart.push({name,price,qty:1});}
- render();
+// Kimchi
+function updateKimchiPrice() {
+  let sizePrice = parseInt(document.getElementById('kimchiSize').value);
+  let qty = parseInt(document.getElementById('kimchiQty').value);
+  let total = sizePrice * qty;
+  document.getElementById('kimchiTotal').innerText = `Total: ₱${total}`;
 }
 
+function addKimchi(){
+  let sel = document.getElementById('kimchiSize');
+  let price = parseInt(sel.value);
+  let qty = parseInt(document.getElementById('kimchiQty').value);
+  let name = 'KyKu Kimchi ' + sel.options[sel.selectedIndex].text;
+  let item = cart.find(i=>i.name===name);
+  if(item){item.qty += qty;}
+  else{cart.push({name, price, qty});}
+  render();
+}
+
+// Change quantity in cart
 function changeQty(i,val){cart[i].qty+=val;if(cart[i].qty<=0)cart.splice(i,1);render();}
 
+// Render cart
 function render(){
  let html=''; let total=0; let embQty=0;
  cart.forEach((i,idx)=>{
@@ -128,6 +164,7 @@ function render(){
  `<br><strong>Total: ₱${total}</strong>`;
 }
 
+// Send order via Messenger
 function sendOrder(){
  let name=document.getElementById('name').value;
  let contact=document.getElementById('contact').value;
@@ -146,6 +183,7 @@ function sendOrder(){
 }
 </script>
 
+<style>
 .messenger-button {
   position: fixed;
   bottom: 20px;
@@ -154,7 +192,6 @@ function sendOrder(){
   width: 60px;
   height: 60px;
 }
-
 .messenger-button img {
   width: 100%;
   height: 100%;
@@ -162,12 +199,10 @@ function sendOrder(){
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   transition: transform 0.2s;
 }
-
 .messenger-button img:hover {
   transform: scale(1.1);
 }
-
-
+</style>
 
 </body>
 </html>
