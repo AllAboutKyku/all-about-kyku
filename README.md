@@ -1,1 +1,150 @@
-# all-about-kyku
+# All About Kyku
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All About KyKu | Food Ordering</title>
+<style>
+body{font-family:Arial;margin:0;background:#fff8f0}
+header{background:#ff7a00;color:#fff;padding:25px;text-align:center}
+h1{margin:0}
+main{padding:30px}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:25px;max-width:1100px;margin:auto}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 6px 15px rgba(0,0,0,.1);text-align:center}
+.card img{width:100%;height:200px;object-fit:cover;border-radius:12px}
+button{background:#ff7a00;color:white;border:none;padding:10px 18px;border-radius:10px;cursor:pointer}
+button:hover{background:#e66d00}
+.cart{max-width:950px;margin:40px auto;background:#fff;padding:25px;border-radius:16px;box-shadow:0 6px 15px rgba(0,0,0,.1)}
+.cart h2{text-align:center}
+.cart-item{display:flex;justify-content:space-between;align-items:center;margin:10px 0}
+.qty button{padding:4px 10px;margin:0 5px}
+.total{font-size:20px;font-weight:bold;text-align:right;margin-top:15px}
+.receipt{background:#f9f9f9;padding:15px;border-radius:10px;margin-top:20px;font-size:14px}
+form input,form textarea,form select{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #ccc}
+footer{text-align:center;padding:20px;background:#fff1e0;margin-top:40px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>All About KyKu</h1>
+<p>Homemade Embotido & Kimchi • Order via Messenger</p>
+</header>
+
+<main>
+<h2 style="text-align:center">Menu</h2>
+
+<div class="products">
+
+<div class="card">
+<img src="embotido.jpg" alt="KyKu Embotido">
+<h3>KyKu Embotido</h3>
+<p>₱180 per piece</p>
+<p><small>₱10 OFF per piece if 10 pcs or more</small></p>
+<button onclick="addItem('KyKu Embotido',180)">Add to Cart</button>
+</div>
+
+<div class="card">
+<img src="kimchi.jpg" alt="KyKu Kimchi">
+<h3>KyKu Kimchi</h3>
+<select id="kimchiSize">
+<option value="79">250ml – ₱79</option>
+<option value="109">450ml – ₱109</option>
+<option value="139">750ml – ₱139</option>
+<option value="180">1000ml – ₱180</option>
+</select>
+<br><br>
+<button onclick="addKimchi()">Add to Cart</button>
+</div>
+
+</div>
+
+<div class="cart">
+<h2>Your Cart</h2>
+<div id="cartItems"></div>
+<div class="total" id="totalPrice">Total: ₱0</div>
+
+<div class="receipt" id="receiptBox"></div>
+
+<h3>Order Information</h3>
+<form onsubmit="sendOrder(); return false;">
+<input type="text" id="name" placeholder="Full Name" required>
+<input type="text" id="contact" placeholder="Contact Number" required>
+<textarea id="address" placeholder="Delivery Address" required></textarea>
+<select id="method">
+<option>Delivery</option>
+<option>Pick-up</option>
+</select>
+<button type="submit">Send Order via Messenger</button>
+</form>
+</div>
+</main>
+
+<footer>
+<p>© 2026 All About KyKu</p>
+</footer>
+
+<script>
+let cart = [];
+
+function addItem(name, price){
+ let item = cart.find(i=>i.name===name);
+ if(item){item.qty++;}
+ else{cart.push({name,price,qty:1});}
+ render();
+}
+
+function addKimchi(){
+ let sel=document.getElementById('kimchiSize');
+ let price=parseInt(sel.value);
+ let name='KyKu Kimchi '+sel.options[sel.selectedIndex].text;
+ let item = cart.find(i=>i.name===name);
+ if(item){item.qty++;}
+ else{cart.push({name,price,qty:1});}
+ render();
+}
+
+function changeQty(i,val){cart[i].qty+=val;if(cart[i].qty<=0)cart.splice(i,1);render();}
+
+function render(){
+ let html=''; let total=0; let embQty=0;
+ cart.forEach((i,idx)=>{
+  total+=i.price*i.qty;
+  if(i.name.includes('Embotido')) embQty+=i.qty;
+  html+=`<div class="cart-item"><span>${i.name}</span><div class="qty"><button onclick="changeQty(${idx},-1)">−</button>${i.qty}<button onclick="changeQty(${idx},1)">+</button></div><span>₱${i.price*i.qty}</span></div>`;
+ });
+
+ let discount=0;
+ if(embQty>=10){discount=embQty*10; total-=discount;}
+
+ document.getElementById('cartItems').innerHTML=html;
+ document.getElementById('totalPrice').innerText='Total: ₱'+total;
+
+ document.getElementById('receiptBox').innerHTML=
+ `<strong>AUTO RECEIPT</strong><br>`+
+ cart.map(i=>`${i.name} x${i.qty} = ₱${i.price*i.qty}`).join('<br>')+
+ (discount>0?`<br>Embotido Discount: -₱${discount}`:'')+
+ `<br><strong>Total: ₱${total}</strong>`;
+}
+
+function sendOrder(){
+ let name=document.getElementById('name').value;
+ let contact=document.getElementById('contact').value;
+ let address=document.getElementById('address').value;
+ let method=document.getElementById('method').value;
+
+ let msg='NEW ORDER – ALL ABOUT KYKU%0A%0A';
+ msg+='Name: '+name+'%0AContact: '+contact+'%0AAddress: '+address+'%0AMethod: '+method+'%0A%0A';
+
+ let total=0; let emb=0;
+ cart.forEach(i=>{msg+=`${i.name} x${i.qty} – ₱${i.price*i.qty}%0A`; total+=i.price*i.qty; if(i.name.includes('Embotido')) emb+=i.qty;});
+ if(emb>=10){let d=emb*10; total-=d; msg+=`Discount: -₱${d}%0A`;}
+ msg+=`%0ATOTAL: ₱${total}`;
+
+ window.open('https://m.me/61579185547254?text='+msg,'_blank');
+}
+</script>
+
+</body>
+</html>
