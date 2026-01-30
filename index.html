@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -53,7 +53,7 @@ footer{text-align:center;padding:20px;background:#fff1e0;margin-top:40px}
 <h3>KyKu Kimchi</h3>
 
 <label for="kimchiSize">Select Size:</label>
-<select id="kimchiSize" onchange="updateKimchiPrice()">
+<select id="kimchiSize" onchange="updateKimchiTotal()">
 <option value="79">250ml – ₱79</option>
 <option value="109">450ml – ₱109</option>
 <option value="139">750ml – ₱139</option>
@@ -63,7 +63,7 @@ footer{text-align:center;padding:20px;background:#fff1e0;margin-top:40px}
 <br><br>
 
 <label for="kimchiQty">Quantity:</label>
-<select id="kimchiQty" onchange="updateKimchiPrice()">
+<select id="kimchiQty" onchange="updateKimchiTotal()">
 <option value="1">1</option>
 <option value="2">2</option>
 <option value="3">3</option>
@@ -120,14 +120,15 @@ function addItem(name, price){
  render();
 }
 
-// Kimchi
-function updateKimchiPrice() {
+// Kimchi total update outside cart
+function updateKimchiTotal() {
   let sizePrice = parseInt(document.getElementById('kimchiSize').value);
   let qty = parseInt(document.getElementById('kimchiQty').value);
   let total = sizePrice * qty;
   document.getElementById('kimchiTotal').innerText = `Total: ₱${total}`;
 }
 
+// Add Kimchi to cart
 function addKimchi(){
   let sel = document.getElementById('kimchiSize');
   let price = parseInt(sel.value);
@@ -140,28 +141,52 @@ function addKimchi(){
 }
 
 // Change quantity in cart
-function changeQty(i,val){cart[i].qty+=val;if(cart[i].qty<=0)cart.splice(i,1);render();}
+function changeQty(i, val) {
+  cart[i].qty += val;
+  if(cart[i].qty <= 0) cart.splice(i,1);
+  render();
+}
 
-// Render cart
-function render(){
- let html=''; let total=0; let embQty=0;
- cart.forEach((i,idx)=>{
-  total+=i.price*i.qty;
-  if(i.name.includes('Embotido')) embQty+=i.qty;
-  html+=`<div class="cart-item"><span>${i.name}</span><div class="qty"><button onclick="changeQty(${idx},-1)">−</button>${i.qty}<button onclick="changeQty(${idx},1)">+</button></div><span>₱${i.price*i.qty}</span></div>`;
- });
+// Render cart dynamically
+function render() {
+  let html = '';
+  let total = 0;
+  let embQty = 0;
 
- let discount=0;
- if(embQty>=10){discount=embQty*10; total-=discount;}
+  cart.forEach((i, idx) => {
+    total += i.price * i.qty;
+    if(i.name.includes('Embotido')) embQty += i.qty;
 
- document.getElementById('cartItems').innerHTML=html;
- document.getElementById('totalPrice').innerText='Total: ₱'+total;
+    html += `
+      <div class="cart-item">
+        <span>${i.name}</span>
+        <div class="qty">
+          <button onclick="changeQty(${idx},-1)">−</button>
+          ${i.qty}
+          <button onclick="changeQty(${idx},1)">+</button>
+        </div>
+        <span>₱${i.price * i.qty}</span>
+      </div>
+    `;
+  });
 
- document.getElementById('receiptBox').innerHTML=
- `<strong>AUTO RECEIPT</strong><br>`+
- cart.map(i=>`${i.name} x${i.qty} = ₱${i.price*i.qty}`).join('<br>')+
- (discount>0?`<br>Embotido Discount: -₱${discount}`:'')+
- `<br><strong>Total: ₱${total}</strong>`;
+  let discount = 0;
+  if(embQty >= 10) {
+    discount = embQty * 10;
+    total -= discount;
+  }
+
+  document.getElementById('cartItems').innerHTML = html;
+  document.getElementById('totalPrice').innerText = 'Total: ₱'+total;
+
+  document.getElementById('receiptBox').innerHTML =
+    `<strong>AUTO RECEIPT</strong><br>`+
+    cart.map(i => `${i.name} x${i.qty} = ₱${i.price * i.qty}`).join('<br>')+
+    (discount>0?`<br>Embotido Discount: -₱${discount}`:'')+
+    `<br><strong>Total: ₱${total}</strong>`;
+
+  // Update Kimchi total outside cart
+  updateKimchiTotal();
 }
 
 // Send order via Messenger
@@ -175,34 +200,17 @@ function sendOrder(){
  msg+='Name: '+name+'%0AContact: '+contact+'%0AAddress: '+address+'%0AMethod: '+method+'%0A%0A';
 
  let total=0; let emb=0;
- cart.forEach(i=>{msg+=`${i.name} x${i.qty} – ₱${i.price*i.qty}%0A`; total+=i.price*i.qty; if(i.name.includes('Embotido')) emb+=i.qty;});
+ cart.forEach(i=>{
+   msg+=`${i.name} x${i.qty} – ₱${i.price*i.qty}%0A`; 
+   total+=i.price*i.qty; 
+   if(i.name.includes('Embotido')) emb+=i.qty;
+ });
  if(emb>=10){let d=emb*10; total-=d; msg+=`Discount: -₱${d}%0A`;}
  msg+=`%0ATOTAL: ₱${total}`;
 
  window.open('https://m.me/61579185547254?text='+msg,'_blank');
 }
 </script>
-
-<style>
-.messenger-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-  width: 60px;
-  height: 60px;
-}
-.messenger-button img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: transform 0.2s;
-}
-.messenger-button img:hover {
-  transform: scale(1.1);
-}
-</style>
 
 </body>
 </html>
